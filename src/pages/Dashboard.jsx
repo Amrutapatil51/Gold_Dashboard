@@ -2,30 +2,96 @@ import PriceCards from '../components/Dashboard/PriceCards';
 import GoldChart from '../components/Dashboard/GoldChart';
 import PortfolioOverview from '../components/Dashboard/PortfolioOverview';
 import RecentNews from '../components/Dashboard/RecentNews';
+import MarketInsights from '../components/Dashboard/MarketInsights';
+import { useQuery } from '@tanstack/react-query';
+import { portfolioService, marketService } from '../services/api';
+import { useNavigate } from 'react-router-dom';
+import { Download, Plus } from 'lucide-react';
 
 const Dashboard = () => {
+    const navigate = useNavigate();
+    
+    // Fetch data for export
+    const { data: portfolioItems = [] } = useQuery({
+        queryKey: ['portfolio'],
+        queryFn: portfolioService.getItems,
+    });
+
+    const { data: marketData } = useQuery({
+        queryKey: ['market-price'],
+        queryFn: marketService.getPrice,
+    });
+
+    const handleExportCSV = () => {
+        if (!portfolioItems.length || !marketData) {
+            alert('Insufficient data for export. Syncing with market...');
+            return;
+        }
+
+        const currentPrice = marketData.price;
+        const headers = ['Asset', 'Weight (g)', 'Purchase Price (per 10g)', 'Current Rate (per 10g)', 'Total Value', 'P/L'];
+        
+        const rows = portfolioItems.map(item => {
+            const totalValue = (currentPrice * item.weight);
+            const totalPurchase = (item.buyPrice * item.weight);
+            const pl = totalValue - totalPurchase;
+            
+            return [
+                'Gold', 
+                item.weight, 
+                `₹${item.buyPrice}`, 
+                `₹${currentPrice}`, 
+                `₹${Math.round(totalValue)}`, 
+                `₹${Math.round(pl)}`
+            ];
+        });
+
+        const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Gold_Portfolio_Report_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
-        <div className="space-y-6 pb-8">
-            {/* Header section */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-10 pb-12">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
-                    <p className="text-slate-400 mt-1">Real-time gold market insights and trends</p>
+                    <h1 className="text-4xl font-black text-white tracking-tight group">
+                        Executive <span className="text-gold-500 italic">Insights</span>
+                    </h1>
+                    <p className="text-sm font-medium text-slate-500 mt-2 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
+                        Real-time market analysis & asset performance
+                    </p>
                 </div>
-                <div className="flex gap-3">
-                    <button className="px-4 py-2.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-xl text-sm font-medium transition-all text-white">
-                        Export Data
+                <div className="flex gap-4">
+                    <button 
+                        onClick={handleExportCSV}
+                        className="flex items-center gap-2.5 px-6 py-3.5 bg-slate-900/50 border border-slate-800/60 hover:bg-slate-800 hover:text-gold-400 rounded-2xl text-xs font-black uppercase tracking-widest transition-all text-slate-400 backdrop-blur-md shadow-lg hover:shadow-slate-900/50 group"
+                    >
+                        <Download size={16} className="group-hover:translate-y-0.5 transition-transform" />
+                        Export Report
                     </button>
-                    <button className="px-5 py-2.5 bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-slate-900 shadow-[0_0_15px_rgba(212,174,67,0.3)] rounded-xl text-sm font-bold transition-all shadow-gold-500/20">
-                        Buy Gold
+                    <button 
+                        onClick={() => navigate('/calculator')}
+                        className="flex items-center gap-2.5 px-8 py-3.5 bg-gradient-to-tr from-gold-600 to-amber-400 hover:from-gold-500 hover:to-amber-300 text-slate-950 shadow-[0_10px_20px_rgba(187,148,43,0.2)] hover:shadow-gold-500/40 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+                    >
+                        <Plus size={18} strokeWidth={3} />
+                        Purchase Asset
                     </button>
                 </div>
             </div>
 
-            {/* Top row: Price Cards */}
+            <MarketInsights />
             <PriceCards />
 
-            {/* Middle row: Chart and Portfolio Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 min-h-[400px]">
                     <GoldChart />

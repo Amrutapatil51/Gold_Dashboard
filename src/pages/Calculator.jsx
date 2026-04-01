@@ -1,40 +1,27 @@
-import { useState, useEffect } from 'react';
-import { Calculator as CalcIcon, DollarSign, Percent, Info, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Calculator as CalcIcon, Percent, Info, ArrowRight, Gauge, Scale, Sparkles } from 'lucide-react';
 import CountryComparison from '../components/Calculator/CountryComparison';
 import { marketService } from '../services/api';
+import Skeleton from '../components/Common/Skeleton';
 
 const CalculatorPage = () => {
-    const [liveRates, setLiveRates] = useState({
-        '24K': 7245.50,
-        '22K': 6649.00,
-        '18K': 5434.12
-    });
-    const [loading, setLoading] = useState(true);
     const [weight, setWeight] = useState(10);
     const [purity, setPurity] = useState('24K');
     const [makingChargesPercent, setMakingChargesPercent] = useState(8);
     const [gstPercent] = useState(3); // Standard India GST for Gold
 
-    useEffect(() => {
-        const fetchRates = async () => {
-            try {
-                const data = await marketService.getPrice();
-                if (data && data.price) {
-                    const base24K = data.price;
-                    setLiveRates({
-                        '24K': base24K,
-                        '22K': base24K * 0.9167,
-                        '18K': base24K * 0.75
-                    });
-                }
-            } catch (err) {
-                console.error('Failed to fetch live rates:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchRates();
-    }, []);
+    const { data: marketData, isLoading } = useQuery({
+        queryKey: ['market-price'],
+        queryFn: marketService.getPrice,
+    });
+
+    const base24K = (marketData?.price || 72000) / 10;
+    const liveRates = {
+        '24K': base24K,
+        '22K': base24K * 0.9167,
+        '18K': base24K * 0.75
+    };
 
     const basePrice = (liveRates[purity] * weight);
     const makingCharges = (basePrice * makingChargesPercent) / 100;
@@ -43,121 +30,172 @@ const CalculatorPage = () => {
     const finalPrice = subTotal + targetGst;
 
     return (
-        <div className="space-y-6 pb-8">
-            <div className="flex justify-between items-center">
+        <div className="space-y-12 pb-16">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Gold Calculator</h1>
-                    <p className="text-slate-400 mt-1">Calculate exact costs including making charges and taxes</p>
+                    <h1 className="text-4xl font-black text-white tracking-tight">
+                        Precision <span className="text-gold-500 italic">Calculator</span>
+                    </h1>
+                    <p className="text-sm font-medium text-slate-500 mt-2">Real-time valuation with transparent tax & labor breakdown</p>
                 </div>
-                {loading && <Loader2 className="animate-spin text-gold-500" size={24} />}
+                {!isLoading && (
+                    <div className="flex items-center gap-3 bg-gold-500/5 px-4 py-2 rounded-2xl border border-gold-500/10">
+                        <div className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-gold-500 uppercase tracking-widest">Market Live</span>
+                    </div>
+                )}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {/* Input Section */}
-                <div className="bg-slate-800/60 border border-slate-700/50 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-3 bg-blue-500/20 rounded-xl text-blue-400">
-                            <CalcIcon size={24} />
+                <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-gold-500/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-gold-500/10 transition-colors duration-500" />
+                    
+                    <div className="flex items-center gap-4 mb-10">
+                        <div className="p-3.5 bg-slate-950/50 rounded-2xl text-gold-500 shadow-inner">
+                            <CalcIcon size={24} strokeWidth={2.5} />
                         </div>
-                        <h2 className="text-xl font-bold text-white">Investment Details</h2>
+                        <h2 className="text-xl font-black text-white tracking-tight">Configuration</h2>
                     </div>
 
-                    <div className="space-y-5">
+                    <div className="space-y-8">
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Gold Purity</label>
-                            <div className="grid grid-cols-3 gap-3">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 block px-1">Selected Purity</label>
+                            <div className="grid grid-cols-3 gap-4">
                                 {Object.keys(liveRates).map(p => (
                                     <button
                                         key={p}
                                         onClick={() => setPurity(p)}
-                                        className={`py-3 rounded-xl font-semibold border transition-all ${purity === p
-                                            ? 'bg-gold-500/20 text-gold-400 border-gold-500/50 shadow-[0_0_10px_rgba(212,174,67,0.1)]'
-                                            : 'bg-slate-900/50 text-slate-400 border-slate-700 hover:border-slate-500 hover:text-slate-300'
+                                        className={`group relative py-4 rounded-2xl font-black text-sm transition-all duration-300 border overflow-hidden ${purity === p
+                                            ? 'bg-gold-500 text-slate-950 border-gold-400 shadow-[0_10px_20px_rgba(187,148,43,0.2)]'
+                                            : 'bg-slate-900/50 text-slate-500 border-slate-800 hover:border-slate-600 hover:text-slate-300'
                                             }`}
                                     >
                                         {p}
+                                        {purity === p && <Sparkles size={12} className="absolute top-2 right-2 opacity-50" />}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Weight (Grams)</label>
-                            <div className="relative">
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-end px-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Net Mass</label>
+                                <div className="text-sm font-black text-white flex items-center gap-1.5">
+                                    <Scale size={14} className="text-slate-500" />
+                                    {weight}<span className="text-gold-500 italic">g</span>
+                                </div>
+                            </div>
+                            <div className="relative group/input">
                                 <input
                                     type="number"
                                     min="0"
                                     step="0.1"
                                     value={weight}
                                     onChange={(e) => setWeight(Number(e.target.value) || 0)}
-                                    className="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-gold-500/50 focus:ring-1 focus:ring-gold-500/50 transition-all"
+                                    className="w-full bg-slate-950/50 border-2 border-slate-900 rounded-2xl py-4 pl-6 pr-12 text-sm font-bold text-white focus:outline-none focus:border-gold-500/30 transition-all placeholder:text-slate-700"
+                                    placeholder="Enter weight in grams..."
                                 />
-                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500">
-                                    g
+                                <div className="absolute inset-y-0 right-0 pr-6 flex items-center pointer-events-none">
+                                    <span className="text-[10px] font-black text-slate-600 uppercase">Mass</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <label className="text-sm font-medium text-slate-300">Making Charges</label>
-                                <span className="text-gold-400 font-bold">{makingChargesPercent}%</span>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center px-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Crafting Premium</label>
+                                <span className="text-sm font-black text-gold-500 flex items-center gap-1.5">
+                                    <Gauge size={14} className="text-slate-500" />
+                                    {makingChargesPercent}%
+                                </span>
                             </div>
-                            <input
-                                type="range"
-                                min="0"
-                                max="25"
-                                step="1"
-                                value={makingChargesPercent}
-                                onChange={(e) => setMakingChargesPercent(Number(e.target.value))}
-                                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-gold-500"
-                            />
-                            <div className="flex justify-between text-xs text-slate-500 mt-2">
-                                <span>0%</span>
-                                <span>25%</span>
+                            <div className="px-1 py-4">
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="25"
+                                    step="1"
+                                    value={makingChargesPercent}
+                                    onChange={(e) => setMakingChargesPercent(Number(e.target.value))}
+                                    className="w-full h-1.5 bg-slate-900 rounded-full appearance-none cursor-pointer accent-gold-500 hover:accent-gold-400 transition-all duration-300"
+                                />
+                                <div className="flex justify-between text-[10px] font-black text-slate-700 mt-4 uppercase tracking-widest">
+                                    <span>Industrial</span>
+                                    <span>Artisanal</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="p-4 bg-slate-900/30 rounded-xl border border-slate-700/50 flex gap-3 text-sm text-slate-400">
-                            <Info size={18} className="text-blue-400 shrink-0 mt-0.5" />
-                            <p>Current {purity} Rate: <span className="text-white font-medium">₹{liveRates[purity].toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span> per gram</p>
+                        <div className="p-5 bg-slate-950/40 rounded-3xl border border-slate-800/50 flex gap-4 items-start group-hover:border-gold-500/20 transition-colors duration-300">
+                            <div className="p-2 bg-gold-500/10 rounded-xl text-gold-500 mt-0.5">
+                                <Info size={16} />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Spot Valuation</p>
+                                <p className="text-sm font-bold text-slate-200">
+                                    Current {purity} Rate: <span className="text-gold-500 font-black">₹{liveRates[purity].toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span> <span className="text-[10px] text-slate-600">/ g</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Breakdown Section */}
-                <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 rounded-2xl p-0 shadow-lg overflow-hidden flex flex-col">
-                    <div className="p-6 border-b border-slate-700/50">
-                        <h2 className="text-xl font-bold text-white mb-6">Cost Breakdown</h2>
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center text-slate-300">
-                                <span>Gold Value ({weight}g × ₹{liveRates[purity].toLocaleString('en-IN', { maximumFractionDigits: 2 })}/g)</span>
-                                <span className="font-medium text-white">₹{basePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-[2.5rem] p-0 shadow-2xl overflow-hidden flex flex-col group">
+                    <div className="p-10 border-b border-slate-800/40">
+                        <div className="flex items-center gap-3 mb-10">
+                            <div className="p-3.5 bg-slate-950/50 rounded-2xl text-emerald-400 shadow-inner">
+                                <Percent size={22} strokeWidth={2.5} />
                             </div>
-                            <div className="flex justify-between items-center text-slate-300">
-                                <span>Making Charges ({makingChargesPercent}%)</span>
-                                <span className="font-medium text-white">+ ₹{makingCharges.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            <h2 className="text-xl font-black text-white tracking-tight">Audit Trail</h2>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-center group/item">
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover/item:text-slate-300 transition-colors">Intrinsic Value</span>
+                                <div className="text-right">
+                                    <p className="text-sm font-black text-white">₹{basePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-tighter mt-0.5">{weight}g @ {purity}</p>
+                                </div>
                             </div>
-                            <div className="h-px bg-slate-700/50 w-full my-2"></div>
-                            <div className="flex justify-between items-center text-slate-200 font-medium">
-                                <span>Subtotal</span>
-                                <span>₹{subTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            
+                            <div className="flex justify-between items-center group/item">
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover/item:text-slate-300 transition-colors">Crafting Labor</span>
+                                <div className="text-right">
+                                    <p className="text-sm font-black text-white">+ ₹{makingCharges.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    <p className="text-[9px] font-black text-gold-500/50 uppercase tracking-tighter mt-0.5">{makingChargesPercent}% Premium</p>
+                                </div>
                             </div>
-                            <div className="flex justify-between items-center text-slate-300">
-                                <span>GST (3%)</span>
-                                <span className="font-medium text-white">+ ₹{targetGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+
+                            <div className="h-px bg-slate-800/50 w-full" />
+                            
+                            <div className="flex justify-between items-center">
+                                <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Net Subtotal</span>
+                                <span className="text-base font-black text-white">₹{subTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center group/item">
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover/item:text-slate-300 transition-colors">Statutory GST</span>
+                                <div className="text-right">
+                                    <p className="text-sm font-black text-white">+ ₹{targetGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-tighter mt-0.5">3.0% Standard</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-6 bg-slate-900/50 flex-1 flex flex-col justify-center">
-                        <p className="text-sm text-slate-400 mb-1 text-center">Final Payable Amount</p>
-                        <div className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-amber-500 text-center tracking-tight drop-shadow-sm">
+                    <div className="p-10 bg-slate-950/40 flex-1 flex flex-col justify-center relative overflow-hidden">
+                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-gold-500/5 rounded-full blur-[100px] -mr-32 -mb-32" />
+                        
+                        <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-3 text-center">Total Acquisition Cost</p>
+                        <div className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-gold-600 via-amber-400 to-gold-300 text-center tracking-tighter drop-shadow-xl">
                             ₹{finalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </div>
 
-                        <button className="w-full mt-8 py-4 bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-slate-900 rounded-xl text-base font-bold transition-all shadow-[0_0_20px_rgba(212,174,67,0.2)]">
-                            Continue to Purchase
+                        <button className="w-full mt-12 py-5 bg-gradient-to-tr from-gold-600 to-amber-400 hover:from-gold-500 hover:to-amber-300 text-slate-950 rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] transition-all shadow-[0_20px_40px_rgba(187,148,43,0.15)] hover:shadow-gold-500/40 active:scale-[0.98] flex items-center justify-center gap-3 group">
+                            Execute Order
+                            <ArrowRight size={18} className="group-hover:translate-x-1.5 transition-transform" />
                         </button>
                     </div>
                 </div>

@@ -20,7 +20,9 @@ const Register = () => {
             await register(name, email, password);
             navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed. Please try again.');
+            console.error('Registration Flow Error:', err);
+            const errorMessage = err.response?.data?.message || err.message || 'Registration failed. Check server connection.';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

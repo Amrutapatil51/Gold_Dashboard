@@ -41,7 +41,11 @@ router.post('/register', async (req, res) => {
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Auth API Error:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Email address already exists' });
+    }
+    res.status(500).json({ message: error.message || 'Server-side processing error' });
   }
 });
 

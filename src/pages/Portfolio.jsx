@@ -1,33 +1,47 @@
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, DollarSign, Activity, Percent, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, Activity, Percent, ArrowRight, Calendar, Weight, ShieldCheck } from 'lucide-react';
 import { portfolioService, marketService } from '../services/api';
+import Skeleton from '../components/Common/Skeleton';
 
 const Portfolio = () => {
-    const [entries, setEntries] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [liveRate, setLiveRate] = useState(7245.50); // Default fallback
+    const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
     
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            try {
-                const [portfolioData, marketData] = await Promise.all([
-                    portfolioService.getItems(),
-                    marketService.getPrice()
-                ]);
-                setEntries(portfolioData);
-                if (marketData && marketData.price) {
-                    setLiveRate(marketData.price / 10); // assuming price per 10g from API
-                }
-            } catch (err) {
-                console.error('Failed to load portfolio data:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadData();
-    }, []);
+    // Fetch Portfolio Data
+    const { data: entries = [], isLoading: isLoadingEntries } = useQuery({
+        queryKey: ['portfolio-items'],
+        queryFn: portfolioService.getItems,
+    });
+
+    // Fetch Market Price
+    const { data: marketData, isLoading: isLoadingMarket } = useQuery({
+        queryKey: ['market-price'],
+        queryFn: marketService.getPrice,
+    });
+
+    // Mutations
+    const addMutation = useMutation({
+        mutationFn: portfolioService.addItem,
+        onSuccess: () => {
+            queryClient.invalidateQueries(['portfolio-items']);
+            setIsModalOpen(false);
+            setFormData({
+                weight: '',
+                purity: '24K',
+                purchasePrice: '',
+                date: new Date().toISOString().split('T')[0],
+                notes: ''
+            });
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: portfolioService.deleteItem,
+        onSuccess: () => {
+            queryClient.invalidateQueries(['portfolio-items']);
+        },
+    });
 
     const [formData, setFormData] = useState({
         weight: '',
@@ -37,41 +51,23 @@ const Portfolio = () => {
         notes: ''
     });
 
-    const handleAddItem = async (e) => {
+    const handleAddItem = (e) => {
         e.preventDefault();
-        try {
-            const newItem = await portfolioService.addItem({
-                ...formData,
-                weight: Number(formData.weight),
-                purchasePrice: Number(formData.purchasePrice)
-            });
-            setEntries([newItem, ...entries]);
-            setIsModalOpen(false);
-            setFormData({
-                weight: '',
-                purity: '24K',
-                purchasePrice: '',
-                date: new Date().toISOString().split('T')[0],
-                notes: ''
-            });
-        } catch (err) {
-            console.error('Failed to add item:', err);
-            alert('Error adding investment. Please try again.');
-        }
+        addMutation.mutate({
+            ...formData,
+            weight: Number(formData.weight),
+            purchasePrice: Number(formData.purchasePrice)
+        });
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this investment?')) {
-            try {
-                await portfolioService.deleteItem(id);
-                setEntries(entries.filter(e => e._id !== id));
-            } catch (err) {
-                console.error('Failed to delete item:', err);
-            }
+    const handleDelete = (id) => {
+        if (window.confirm('Confirm deletion of this high-value asset?')) {
+            deleteMutation.mutate(id);
         }
     };
 
     const purityMultipliers = { '24K': 1, '22K': 0.916, '18K': 0.75 };
+    const liveRate = (marketData?.price || 72000) / 10;
 
     const totalInvestment = entries.reduce((acc, curr) => acc + curr.purchasePrice, 0);
     const currentValue = entries.reduce((acc, curr) => {
@@ -82,97 +78,122 @@ const Portfolio = () => {
     const roi = totalInvestment > 0 ? ((totalProfit) / totalInvestment) * 100 : 0;
     const isProfitable = totalProfit >= 0;
 
+    const isLoading = isLoadingEntries || isLoadingMarket;
+
     return (
-        <div className="space-y-6 pb-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-10 pb-12">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">My Portfolio</h1>
-                    <p className="text-slate-400 mt-1">Manage and track your gold investments</p>
+                    <h1 className="text-4xl font-black text-white tracking-tight">
+                        Asset <span className="text-gold-500 italic">Portfolio</span>
+                    </h1>
+                    <p className="text-sm font-medium text-slate-500 mt-2">Precision management of your gold holdings</p>
                 </div>
                 <button 
                   onClick={() => setIsModalOpen(true)}
-                  className="px-5 py-2.5 bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-slate-900 shadow-[0_0_15px_rgba(212,174,67,0.3)] rounded-xl text-sm font-bold transition-all shadow-gold-500/20 flex items-center gap-2"
+                  className="px-8 py-3.5 bg-gradient-to-tr from-gold-600 to-amber-400 hover:from-gold-500 hover:to-amber-300 text-slate-950 shadow-[0_10px_20px_rgba(187,148,43,0.2)] hover:shadow-gold-500/40 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2.5"
                 >
-                    <Plus size={18} />
-                    Add Purchase
+                    <Plus size={18} strokeWidth={3} />
+                    Log New Purchase
                 </button>
             </div>
 
             {/* Add Purchase Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-                        <h2 className="text-xl font-bold text-white mb-4">Add New Investment</h2>
-                        <form onSubmit={handleAddItem} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-400 mb-1">Date of Purchase</label>
-                                <input 
-                                    type="date" 
-                                    required
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-1 focus:ring-gold-500 outline-none"
-                                    value={formData.date}
-                                    onChange={(e) => setFormData({...formData, date: e.target.value})}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-400 mb-1">Weight (grams)</label>
-                                    <input 
-                                        type="number" 
-                                        step="0.01"
-                                        required
-                                        placeholder="e.g. 10"
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-1 focus:ring-gold-500 outline-none"
-                                        value={formData.weight}
-                                        onChange={(e) => setFormData({...formData, weight: e.target.value})}
-                                    />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-slate-900/90 border border-slate-800/50 backdrop-blur-2xl rounded-3xl w-full max-w-lg p-8 shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gold-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
+                        
+                        <h2 className="text-2xl font-black text-white mb-8 tracking-tight">Secure <span className="text-gold-500 italic">Asset Log</span></h2>
+                        
+                        <form onSubmit={handleAddItem} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Date OF Transaction</label>
+                                    <div className="relative">
+                                        <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-500/50" />
+                                        <input 
+                                            type="date" 
+                                            required
+                                            className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white focus:border-gold-500/50 outline-none transition-all"
+                                            value={formData.date}
+                                            onChange={(e) => setFormData({...formData, date: e.target.value})}
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-400 mb-1">Purity</label>
-                                    <select 
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-1 focus:ring-gold-500 outline-none"
-                                        value={formData.purity}
-                                        onChange={(e) => setFormData({...formData, purity: e.target.value})}
-                                    >
-                                        <option value="24K">24K Gold</option>
-                                        <option value="22K">22K Gold</option>
-                                        <option value="18K">18K Gold</option>
-                                    </select>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Fine Weight (g)</label>
+                                    <div className="relative">
+                                        <Weight size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-500/50" />
+                                        <input 
+                                            type="number" 
+                                            step="0.01"
+                                            required
+                                            placeholder="0.00"
+                                            className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white focus:border-gold-500/50 outline-none transition-all"
+                                            value={formData.weight}
+                                            onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-400 mb-1">Total Purchase Price (₹)</label>
-                                <input 
-                                    type="number" 
-                                    required
-                                    placeholder="e.g. 72000"
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-1 focus:ring-gold-500 outline-none"
-                                    value={formData.purchasePrice}
-                                    onChange={(e) => setFormData({...formData, purchasePrice: e.target.value})}
-                                />
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Asset Purity</label>
+                                    <div className="relative">
+                                        <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-500/50" />
+                                        <select 
+                                            className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white appearance-none focus:border-gold-500/50 outline-none transition-all"
+                                            value={formData.purity}
+                                            onChange={(e) => setFormData({...formData, purity: e.target.value})}
+                                        >
+                                            <option value="24K">Investment Grade (24K)</option>
+                                            <option value="22K">Standard Jewel (22K)</option>
+                                            <option value="18K">Decorative (18K)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Acquisition Cost (₹)</label>
+                                    <div className="relative">
+                                        <DollarSign size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gold-500/50" />
+                                        <input 
+                                            type="number" 
+                                            required
+                                            placeholder="Total Price"
+                                            className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white focus:border-gold-500/50 outline-none transition-all"
+                                            value={formData.purchasePrice}
+                                            onChange={(e) => setFormData({...formData, purchasePrice: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-400 mb-1">Notes (Optional)</label>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Transaction Memo</label>
                                 <textarea 
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-1 focus:ring-gold-500 outline-none h-20"
-                                    placeholder="Store name, invoice #, etc."
+                                    className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 px-5 text-sm text-white focus:border-gold-500/50 outline-none transition-all h-28 resize-none"
+                                    placeholder="Add acquisition details, vendor info, or certificates..."
                                     value={formData.notes}
                                     onChange={(e) => setFormData({...formData, notes: e.target.value})}
                                 />
                             </div>
-                            <div className="flex gap-3 pt-2">
+
+                            <div className="flex gap-4 pt-4">
                                 <button 
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium transition-colors"
+                                    className="flex-1 px-6 py-4 bg-slate-950/50 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl font-bold text-xs uppercase tracking-widest transition-all"
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     type="submit"
-                                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gold-500 to-amber-500 text-slate-900 rounded-xl font-bold hover:from-gold-400"
+                                    disabled={addMutation.isPending}
+                                    className="flex-1 px-6 py-4 bg-gradient-to-tr from-gold-600 to-amber-400 text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:shadow-gold-500/30 transition-all disabled:opacity-50"
                                 >
-                                    Save Investment
+                                    {addMutation.isPending ? 'Validating...' : 'Confirm Entry'}
                                 </button>
                             </div>
                         </form>
@@ -182,115 +203,153 @@ const Portfolio = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                <div className="bg-slate-800/60 border border-slate-700/50 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
-                    <div className="flex items-center gap-3 mb-2 text-slate-400">
-                        <DollarSign size={18} />
-                        <h3 className="text-sm font-medium">Total Investment</h3>
-                    </div>
-                    <p className="text-2xl font-bold text-white">₹{totalInvestment.toLocaleString('en-IN')}</p>
-                </div>
+                {isLoading ? (
+                    [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-3xl" />)
+                ) : (
+                    <>
+                        <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-3xl p-6 shadow-xl group hover:border-gold-500/30 transition-all duration-300">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2.5 bg-slate-950/50 rounded-xl text-slate-500 group-hover:text-gold-500 transition-colors">
+                                    <DollarSign size={18} />
+                                </div>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">Capital Basis</h3>
+                            </div>
+                            <p className="text-3xl font-black text-white tracking-tight">₹{totalInvestment.toLocaleString('en-IN')}</p>
+                        </div>
 
-                <div className="bg-slate-800/60 border border-slate-700/50 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
-                    <div className="flex items-center gap-3 mb-2 text-slate-400">
-                        <Activity size={18} />
-                        <h3 className="text-sm font-medium">Current Value</h3>
-                    </div>
-                    <p className="text-2xl font-bold text-white">₹{Math.round(currentValue).toLocaleString('en-IN')}</p>
-                </div>
+                        <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-3xl p-6 shadow-xl group hover:border-indigo-500/30 transition-all duration-300">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2.5 bg-slate-950/50 rounded-xl text-slate-500 group-hover:text-indigo-400 transition-colors">
+                                    <Activity size={18} />
+                                </div>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">Asset Value</h3>
+                            </div>
+                            <p className="text-3xl font-black text-white tracking-tight">₹{Math.round(currentValue).toLocaleString('en-IN')}</p>
+                        </div>
 
-                <div className="bg-slate-800/60 border border-slate-700/50 backdrop-blur-xl rounded-2xl p-6 shadow-lg relative overflow-hidden">
-                    <div className={`absolute right-0 top-0 w-24 h-24 blur-3xl rounded-full opacity-20 pointer-events-none ${isProfitable ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                    <div className="flex items-center justify-between mb-2 text-slate-400">
-                        <h3 className="text-sm font-medium">Overall Profit/Loss</h3>
-                        {isProfitable ? <TrendingUp size={18} className="text-emerald-400" /> : <TrendingDown size={18} className="text-rose-400" />}
-                    </div>
-                    <p className={`text-2xl font-bold ${isProfitable ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {isProfitable ? '+' : '-'}₹{Math.abs(Math.round(totalProfit)).toLocaleString('en-IN')}
-                    </p>
-                </div>
+                        <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-3xl p-6 shadow-xl relative overflow-hidden group transition-all duration-300">
+                            <div className={`absolute right-0 top-0 w-24 h-24 blur-3xl rounded-full opacity-10 pointer-events-none ${isProfitable ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2.5 bg-slate-950/50 rounded-xl ${isProfitable ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                        {isProfitable ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                                    </div>
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">P&L Status</h3>
+                                </div>
+                            </div>
+                            <p className={`text-3xl font-black tracking-tight ${isProfitable ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                {isProfitable ? '+' : '-'}₹{Math.abs(Math.round(totalProfit)).toLocaleString('en-IN')}
+                            </p>
+                        </div>
 
-                <div className="bg-slate-800/60 border border-slate-700/50 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
-                    <div className="flex items-center gap-3 mb-2 text-slate-400">
-                        <Percent size={18} className="w-4 h-4" />
-                        <h3 className="text-sm font-medium">Net ROI</h3>
-                    </div>
-                    <p className={`text-2xl font-bold ${isProfitable ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {roi.toFixed(2)}%
-                    </p>
-                </div>
+                        <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-3xl p-6 shadow-xl group hover:border-gold-500/30 transition-all duration-300">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2.5 bg-slate-950/50 rounded-xl text-slate-500 group-hover:text-gold-500 transition-colors">
+                                    <Percent size={18} className="w-4 h-4" />
+                                </div>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">Yield %</h3>
+                            </div>
+                            <p className={`text-3xl font-black tracking-tight ${isProfitable ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                {roi.toFixed(2)}%
+                            </p>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Holdings Table */}
-            <div className="bg-slate-800/60 border border-slate-700/50 backdrop-blur-xl rounded-2xl p-6 shadow-lg mt-8">
-                <h2 className="text-xl font-bold text-white mb-6">Investment History</h2>
-
-                {loading ? (
-                    <div className="py-20 flex justify-center">
-                        <Loader2 className="animate-spin text-gold-500" size={32} />
+            <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-[2.5rem] shadow-xl overflow-hidden">
+                <div className="p-8 border-b border-slate-800/40 bg-slate-900/20 flex justify-between items-center">
+                    <div>
+                        <h2 className="text-xl font-black text-white tracking-tight">Holdings <span className="text-gold-500 italic">Ledger</span></h2>
+                        <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">Transaction history & performance</p>
                     </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-slate-700 text-slate-400 text-sm">
-                                    <th className="pb-3 font-medium px-4">Date</th>
-                                    <th className="pb-3 font-medium px-4">Weight</th>
-                                    <th className="pb-3 font-medium px-4">Purity</th>
-                                    <th className="pb-3 font-medium px-4">Invested</th>
-                                    <th className="pb-3 font-medium px-4">Current Value</th>
-                                    <th className="pb-3 font-medium px-4">Return</th>
-                                    <th className="pb-3 font-medium px-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-700/50">
-                                {entries.length > 0 ? entries.map((entry) => {
-                                    const currentVal = entry.weight * liveRate * (purityMultipliers[entry.purity] || 1);
-                                    const profit = currentVal - entry.purchasePrice;
-                                    const isEntryProfitable = profit >= 0;
+                </div>
 
-                                    return (
-                                        <tr key={entry._id} className="hover:bg-slate-700/20 transition-colors">
-                                            <td className="py-4 px-4 text-slate-300 font-medium">
-                                                {new Date(entry.date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
-                                            </td>
-                                            <td className="py-4 px-4 text-white font-medium">{entry.weight}g</td>
-                                            <td className="py-4 px-4">
-                                                <span className="px-2.5 py-1 bg-gold-500/10 text-gold-400 border border-gold-500/20 rounded text-xs font-semibold">
-                                                    {entry.purity}
-                                                </span>
-                                            </td>
-                                            <td className="py-4 px-4 text-slate-300">₹{entry.purchasePrice.toLocaleString('en-IN')}</td>
-                                            <td className="py-4 px-4 text-white font-medium">₹{Math.round(currentVal).toLocaleString('en-IN')}</td>
-                                            <td className={`py-4 px-4 font-medium ${isEntryProfitable ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                                {isEntryProfitable ? '+' : ''}₹{Math.round(profit).toLocaleString('en-IN')}
-                                            </td>
-                                            <td className="py-4 px-4">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded transition-colors" title="Edit entry">
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(entry._id)}
-                                                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-700 rounded transition-colors"
-                                                        title="Delete entry"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
+                <div className="p-0">
+                    {isLoading ? (
+                        <div className="p-8 space-y-4">
+                            {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl" />)}
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-950/20 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">
+                                        <th className="py-5 px-8">Acquisition Date</th>
+                                        <th className="py-5 px-8">Purity</th>
+                                        <th className="py-5 px-8">Fine Weight</th>
+                                        <th className="py-5 px-8">Cost Basis</th>
+                                        <th className="py-5 px-8">Current Valuation</th>
+                                        <th className="py-5 px-8">Profit / Loss</th>
+                                        <th className="py-5 px-8 text-right">Commands</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-800/40">
+                                    {entries.length > 0 ? entries.map((entry) => {
+                                        const currentVal = entry.weight * liveRate * (purityMultipliers[entry.purity] || 1);
+                                        const profit = currentVal - entry.purchasePrice;
+                                        const isEntryProfitable = profit >= 0;
+
+                                        return (
+                                            <tr key={entry._id} className="group hover:bg-slate-800/30 transition-all duration-300">
+                                                <td className="py-6 px-8 text-sm font-bold text-slate-300">
+                                                    {new Date(entry.date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                </td>
+                                                <td className="py-6 px-8">
+                                                    <span className="px-3 py-1 bg-gold-500/10 text-gold-500 border border-gold-500/20 rounded-xl text-[10px] font-black tracking-widest uppercase">
+                                                        {entry.purity}
+                                                    </span>
+                                                </td>
+                                                <td className="py-6 px-8 text-sm font-black text-white">{entry.weight}<span className="text-[10px] text-slate-500 ml-1">g</span></td>
+                                                <td className="py-6 px-8 text-sm font-bold text-slate-400">₹{entry.purchasePrice.toLocaleString('en-IN')}</td>
+                                                <td className="py-6 px-8 text-sm font-black text-white">₹{Math.round(currentVal).toLocaleString('en-IN')}</td>
+                                                <td className={`py-6 px-8 text-sm font-black ${isEntryProfitable ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                    <div className="flex items-center gap-1.5">
+                                                        {isEntryProfitable ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                                                        ₹{Math.abs(Math.round(profit)).toLocaleString('en-IN')}
+                                                    </div>
+                                                </td>
+                                                <td className="py-6 px-8">
+                                                    <div className="flex items-center justify-end">
+                                                        <button
+                                                            onClick={() => handleDelete(entry._id)}
+                                                            className="p-3 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 rounded-2xl transition-all duration-300"
+                                                            title="Delete Transaction"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    }) : (
+                                        <tr>
+                                            <td colSpan="7" className="py-24 text-center">
+                                                <div className="flex flex-col items-center justify-center space-y-4">
+                                                    <div className="p-4 bg-slate-900/50 rounded-3xl text-slate-700">
+                                                        <ShieldCheck size={48} strokeWidth={1} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-base font-black text-slate-400">No Assets Under Management</p>
+                                                        <p className="text-xs font-medium text-slate-600 mt-1 uppercase tracking-widest">Logged transactions will appear in this ledger</p>
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
-                                    );
-                                }) : (
-                                    <tr>
-                                        <td colSpan="7" className="py-8 text-center text-slate-500">
-                                            No investments found. Add a purchase to see it here.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+                
+                <div className="p-6 bg-slate-950/20 border-t border-slate-800/40 flex justify-center">
+                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                        <Activity size={12} className="text-gold-500" />
+                        Live Valuation active based on current market spread
+                    </p>
+                </div>
             </div>
         </div>
     );
