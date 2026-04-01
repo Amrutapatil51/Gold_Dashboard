@@ -184,4 +184,4 @@ const GoldChart = () => {
 
 export default GoldChart;
 
-export default GoldChart;
+
