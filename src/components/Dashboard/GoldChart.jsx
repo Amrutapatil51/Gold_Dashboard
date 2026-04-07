@@ -4,11 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 import { marketService, portfolioService } from '../../services/api';
 import Skeleton from '../Common/Skeleton';
 import { TrendingUp, BarChart3, PieChart } from 'lucide-react';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const GoldChart = () => {
+    const { formatValue, currency, getSymbol, exchangeRate } = useCurrency();
     const [timeframe, setTimeframe] = useState('1M');
     const [chartView, setChartView] = useState('market'); // 'market' or 'portfolio'
-    
+
     // Fetch Market Data
     const { data: rawChartData, isLoading: isMarketLoading } = useQuery({
         queryKey: ['market-history', timeframe],
@@ -27,7 +29,7 @@ const GoldChart = () => {
     // Process Chart Data
     const processedChartData = useMemo(() => {
         if (!rawChartData || rawChartData.length === 0) return [];
-        
+
         const totalInvested = portfolioItems.reduce((acc, item) => acc + (item.buyPrice * item.weight), 0);
         const totalWeight = portfolioItems.reduce((acc, item) => acc + item.weight, 0);
 
@@ -53,7 +55,7 @@ const GoldChart = () => {
                     <div className="space-y-3">
                         <div className="flex flex-col">
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Market Rate</span>
-                            <span className="text-gold-400 text-sm font-black tracking-tight">₹{payload[0].payload.price?.toLocaleString('en-IN')}</span>
+                            <span className="text-gold-400 text-sm font-black tracking-tight">{formatValue(payload[0].payload.price)}</span>
                         </div>
                         {chartView === 'portfolio' && (
                             <div className="flex flex-col">
@@ -73,19 +75,19 @@ const GoldChart = () => {
     return (
         <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-[2.5rem] p-8 shadow-2xl h-full flex flex-col group hover:border-gold-500/20 transition-all duration-500 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gold-500/5 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none group-hover:bg-gold-500/10 transition-all duration-700" />
-            
+
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2.5 bg-slate-950/50 rounded-xl text-gold-500">
-                             {chartView === 'market' ? <BarChart3 size={18} /> : <PieChart size={18} />}
+                            {chartView === 'market' ? <BarChart3 size={18} /> : <PieChart size={18} />}
                         </div>
                         <h2 className="text-2xl font-black text-white tracking-tight uppercase tracking-[0.05em]">
                             {chartView === 'market' ? 'Global Market' : 'Yield Analysis'}
                         </h2>
                     </div>
                     <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.15em] ml-1">
-                        {chartView === 'market' ? 'Live XAU price vectors (per 10g)' : 'Cumulative performance of your assets'}
+                        {chartView === 'market' ? `Live XAU price vectors (per 10g in ${currency})` : 'Cumulative performance of your assets'}
                     </p>
                 </div>
 
@@ -99,8 +101,8 @@ const GoldChart = () => {
                                 key={view.id}
                                 onClick={() => setChartView(view.id)}
                                 className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${chartView === view.id
-                                        ? 'bg-gold-500 text-slate-950 shadow-[0_4px_20px_rgba(212,174,67,0.3)]'
-                                        : 'text-slate-500 hover:text-slate-300 hover:bg-slate-900/50'
+                                    ? 'bg-gold-500 text-slate-950 shadow-[0_4px_20px_rgba(212,174,67,0.3)]'
+                                    : 'text-slate-500 hover:text-slate-300 hover:bg-slate-900/50'
                                     }`}
                             >
                                 <view.icon size={12} strokeWidth={3} />
@@ -114,8 +116,8 @@ const GoldChart = () => {
                                 key={tf}
                                 onClick={() => setTimeframe(tf)}
                                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${timeframe === tf
-                                        ? 'text-white bg-slate-800 shadow-xl border border-slate-700/50'
-                                        : 'text-slate-600 hover:text-slate-300'
+                                    ? 'text-white bg-slate-800 shadow-xl border border-slate-700/50'
+                                    : 'text-slate-600 hover:text-slate-300'
                                     }`}
                             >
                                 {tf}
@@ -159,7 +161,11 @@ const GoldChart = () => {
                                 fontWeight={900}
                                 tickLine={false}
                                 axisLine={false}
-                                tickFormatter={(value) => chartView === 'portfolio' ? `${value}%` : `₹${Math.round(value/1000)}k`}
+                                tickFormatter={(value) => {
+                                    if (chartView === 'portfolio') return `${value}%`;
+                                    const scaledVal = currency === 'USD' ? value / exchangeRate : value;
+                                    return `${getSymbol()}${Math.round(scaledVal / 1000)}k`;
+                                }}
                                 domain={['auto', 'auto']}
                                 dx={-5}
                             />

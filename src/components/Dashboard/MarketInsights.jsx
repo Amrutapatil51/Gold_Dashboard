@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { TrendingUp, TrendingDown, ShieldCheck, Zap, Info, ArrowUpRight, ArrowDownRight, Target } from 'lucide-react';
 import { marketService, portfolioService } from '../../services/api';
 import Skeleton from '../Common/Skeleton';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const MarketInsights = () => {
+    const { formatValue } = useCurrency();
     const { data: marketData, isLoading: marketLoading } = useQuery({
         queryKey: ['market-price'],
         queryFn: marketService.getPrice,
@@ -25,13 +27,11 @@ const MarketInsights = () => {
     const currentPrice = marketData?.price || 72000;
     const changePercent = marketData?.changePercent || 0;
 
-    // ROI Calculation
     const totalInvested = portfolioItems.reduce((acc, item) => acc + (item.buyPrice * item.weight), 0);
     const currentValue = portfolioItems.reduce((acc, item) => acc + (currentPrice * item.weight), 0);
     const totalProfit = currentValue - totalInvested;
     const roiPercentage = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
 
-    // Signal Logic
     const getSignal = () => {
         if (changePercent > 1) return { text: 'Bullish Surge', icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-500/10' };
         if (changePercent < -1) return { text: 'Strong Buy Zone', icon: Zap, color: 'text-amber-400', bg: 'bg-amber-500/10' };
@@ -53,7 +53,7 @@ const MarketInsights = () => {
         {
             title: 'Portfolio Alpha',
             value: `${roiPercentage > 0 ? '+' : ''}${roiPercentage.toFixed(2)}%`,
-            desc: `₹${Math.abs(totalProfit).toLocaleString('en-IN')} net ${totalProfit >= 0 ? 'gain' : 'loss'}`,
+            desc: `${formatValue(Math.abs(totalProfit))} net ${totalProfit >= 0 ? 'gain' : 'loss'}`,
             icon: Target,
             color: roiPercentage >= 0 ? 'text-emerald-400' : 'text-rose-400',
             bg: roiPercentage >= 0 ? 'bg-emerald-500/10' : 'bg-rose-500/10',

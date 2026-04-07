@@ -7,9 +7,11 @@ import { useQuery } from '@tanstack/react-query';
 import { portfolioService, marketService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { Download, Plus } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const { formatValue, currency, getSymbol } = useCurrency();
     
     // Fetch data for export
     const { data: portfolioItems = [] } = useQuery({
@@ -29,7 +31,8 @@ const Dashboard = () => {
         }
 
         const currentPrice = marketData.price;
-        const headers = ['Asset', 'Weight (g)', 'Purchase Price (per 10g)', 'Current Rate (per 10g)', 'Total Value', 'P/L'];
+        const symbol = getSymbol();
+        const headers = ['Asset', 'Weight (g)', `Purchase Price (${symbol})`, `Current Rate (${symbol})`, `Total Value (${symbol})`, `P/L (${symbol})` ];
         
         const rows = portfolioItems.map(item => {
             const totalValue = (currentPrice * item.weight);
@@ -39,10 +42,10 @@ const Dashboard = () => {
             return [
                 'Gold', 
                 item.weight, 
-                `₹${item.buyPrice}`, 
-                `₹${currentPrice}`, 
-                `₹${Math.round(totalValue)}`, 
-                `₹${Math.round(pl)}`
+                formatValue(item.buyPrice), 
+                formatValue(currentPrice), 
+                formatValue(totalValue), 
+                formatValue(pl)
             ];
         });
 

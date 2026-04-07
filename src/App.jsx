@@ -11,13 +11,19 @@ import { useAuth } from './context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  console.log('ProtectedRoute rendering...', { user, loading });
   
-  if (loading) return null; // Or a loading spinner
+  if (loading) {
+    console.log('ProtectedRoute: loading is true, returning null');
+    return null; 
+  }
   
   if (!user) {
+    console.log('ProtectedRoute: user is null, redirecting to /login');
     return <Navigate to="/login" replace />;
   }
   
+  console.log('ProtectedRoute: user authenticated, rendering children');
   return children;
 };
 

@@ -8,10 +8,20 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('AuthContext: Initialization hook triggered');
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        console.log('AuthContext: Parsing stored user data from localStorage');
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error('AuthContext: CRITICAL - Failed to parse stored user:', err);
+        localStorage.removeItem('user');
+      }
+    } else {
+        console.log('AuthContext: No stored user found');
     }
+    console.log('AuthContext: Finalizing initialization (setting loading to false)');
     setLoading(false);
   }, []);
 

@@ -2,12 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { marketService } from '../../services/api';
 import Skeleton from '../Common/Skeleton';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const PriceCards = () => {
+    const { formatValue, currency } = useCurrency();
     const { data: marketData, isLoading, isError } = useQuery({
         queryKey: ['market-price'],
         queryFn: marketService.getPrice,
-        refetchInterval: 60000, // Update every minute
+        refetchInterval: 60000, 
     });
 
     if (isLoading) {
@@ -38,7 +40,6 @@ const PriceCards = () => {
         );
     }
 
-    // Map the API data to the format expected by the component
     const prices = [
         {
             type: '24K Gold',
@@ -66,7 +67,7 @@ const PriceCards = () => {
         },
         {
             type: 'Silver',
-            price: 92.50, // Static for now
+            price: 92.50, 
             unit: 'per gram',
             change: 1.25,
             percentChange: 1.35,
@@ -81,7 +82,6 @@ const PriceCards = () => {
                     key={idx}
                     className="group relative overflow-hidden bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-2xl p-6 hover:border-gold-500/40 transition-all duration-300 shadow-xl"
                 >
-                    {/* Animated gradient background on hover */}
                     <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-gold-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
                     <div className="flex justify-between items-start mb-4">
@@ -96,7 +96,7 @@ const PriceCards = () => {
 
                     <div className="mb-2">
                         <h2 className="text-3xl font-bold tracking-tight text-white group-hover:text-gold-50 transition-colors">
-                            ₹{item.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {formatValue(item.price)}
                         </h2>
                     </div>
 
@@ -108,7 +108,6 @@ const PriceCards = () => {
                         <span className="text-xs text-slate-500 font-medium">vs yesterday</span>
                     </div>
 
-                    {/* Subtle micro-glow */}
                     <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-gold-600/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 </div>
             ))}

@@ -4,12 +4,14 @@ import { Calculator as CalcIcon, Percent, Info, ArrowRight, Gauge, Scale, Sparkl
 import CountryComparison from '../components/Calculator/CountryComparison';
 import { marketService } from '../services/api';
 import Skeleton from '../components/Common/Skeleton';
+import { useCurrency } from '../context/CurrencyContext';
 
 const CalculatorPage = () => {
+    const { formatValue, currency, getSymbol } = useCurrency();
     const [weight, setWeight] = useState(10);
     const [purity, setPurity] = useState('24K');
     const [makingChargesPercent, setMakingChargesPercent] = useState(8);
-    const [gstPercent] = useState(3); // Standard India GST for Gold
+    const [gstPercent] = useState(3); 
 
     const { data: marketData, isLoading } = useQuery({
         queryKey: ['market-price'],
@@ -47,7 +49,6 @@ const CalculatorPage = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                {/* Input Section */}
                 <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-40 h-40 bg-gold-500/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-gold-500/10 transition-colors duration-500" />
                     
@@ -134,14 +135,13 @@ const CalculatorPage = () => {
                             <div className="space-y-1">
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Spot Valuation</p>
                                 <p className="text-sm font-bold text-slate-200">
-                                    Current {purity} Rate: <span className="text-gold-500 font-black">₹{liveRates[purity].toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span> <span className="text-[10px] text-slate-600">/ g</span>
+                                    Current {purity} Rate: <span className="text-gold-500 font-black">{formatValue(liveRates[purity])}</span> <span className="text-[10px] text-slate-600">/ g</span>
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Breakdown Section */}
                 <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-[2.5rem] p-0 shadow-2xl overflow-hidden flex flex-col group">
                     <div className="p-10 border-b border-slate-800/40">
                         <div className="flex items-center gap-3 mb-10">
@@ -155,7 +155,7 @@ const CalculatorPage = () => {
                             <div className="flex justify-between items-center group/item">
                                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover/item:text-slate-300 transition-colors">Intrinsic Value</span>
                                 <div className="text-right">
-                                    <p className="text-sm font-black text-white">₹{basePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    <p className="text-sm font-black text-white">{formatValue(basePrice)}</p>
                                     <p className="text-[9px] font-black text-slate-600 uppercase tracking-tighter mt-0.5">{weight}g @ {purity}</p>
                                 </div>
                             </div>
@@ -163,7 +163,7 @@ const CalculatorPage = () => {
                             <div className="flex justify-between items-center group/item">
                                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover/item:text-slate-300 transition-colors">Crafting Labor</span>
                                 <div className="text-right">
-                                    <p className="text-sm font-black text-white">+ ₹{makingCharges.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    <p className="text-sm font-black text-white">+ {formatValue(makingCharges)}</p>
                                     <p className="text-[9px] font-black text-gold-500/50 uppercase tracking-tighter mt-0.5">{makingChargesPercent}% Premium</p>
                                 </div>
                             </div>
@@ -172,14 +172,14 @@ const CalculatorPage = () => {
                             
                             <div className="flex justify-between items-center">
                                 <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Net Subtotal</span>
-                                <span className="text-base font-black text-white">₹{subTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                <span className="text-base font-black text-white">{formatValue(subTotal)}</span>
                             </div>
                             
                             <div className="flex justify-between items-center group/item">
-                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover/item:text-slate-300 transition-colors">Statutory GST</span>
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover/item:text-slate-300 transition-colors">Tax Allocation</span>
                                 <div className="text-right">
-                                    <p className="text-sm font-black text-white">+ ₹{targetGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-tighter mt-0.5">3.0% Standard</p>
+                                    <p className="text-sm font-black text-white">+ {formatValue(targetGst)}</p>
+                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-tighter mt-0.5">{currency === 'INR' ? '3.0% Standard GST' : 'Global Duty Scale'}</p>
                                 </div>
                             </div>
                         </div>
@@ -190,7 +190,7 @@ const CalculatorPage = () => {
                         
                         <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mb-3 text-center">Total Acquisition Cost</p>
                         <div className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-gold-600 via-amber-400 to-gold-300 text-center tracking-tighter drop-shadow-xl">
-                            ₹{finalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            {formatValue(finalPrice)}
                         </div>
 
                         <button className="w-full mt-12 py-5 bg-gradient-to-tr from-gold-600 to-amber-400 hover:from-gold-500 hover:to-amber-300 text-slate-950 rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] transition-all shadow-[0_20px_40px_rgba(187,148,43,0.15)] hover:shadow-gold-500/40 active:scale-[0.98] flex items-center justify-center gap-3 group">

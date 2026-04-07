@@ -3,9 +3,11 @@ import { Briefcase, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import { portfolioService, marketService } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import Skeleton from '../Common/Skeleton';
+import { useCurrency } from '../../context/CurrencyContext';
 
 const PortfolioOverview = () => {
     const navigate = useNavigate();
+    const { formatValue } = useCurrency();
 
     const { data: portfolioItems, isLoading: isLoadingPortfolio } = useQuery({
         queryKey: ['portfolio-items'],
@@ -48,14 +50,13 @@ const PortfolioOverview = () => {
     const items = portfolioItems || [];
     const totalWeight = items.reduce((acc, item) => acc + item.weight, 0);
     const totalValue = totalWeight * pricePerGram;
-    
+
     const totalCost = items.reduce((acc, item) => acc + (item.weight * (item.purchasePrice / 10)), 0);
     const totalProfit = totalValue - totalCost;
     const isProfit = totalProfit >= 0;
 
     return (
         <div className="group relative bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-2xl p-6 shadow-xl overflow-hidden flex flex-col h-full hover:border-gold-500/20 transition-all duration-300">
-            {/* Premium Glow effect */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gold-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-gold-500/10 transition-colors duration-500" />
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-3xl -ml-12 -mb-12 pointer-events-none" />
 
@@ -73,7 +74,7 @@ const PortfolioOverview = () => {
                 <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Current Value</p>
                     <h3 className="text-4xl font-black text-white tracking-tight group-hover:text-gold-100 transition-colors">
-                        ₹{totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatValue(totalValue)}
                     </h3>
                 </div>
 
@@ -82,7 +83,7 @@ const PortfolioOverview = () => {
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Total Weight</p>
                         <p className="text-lg font-bold text-white">{totalWeight.toFixed(2)} <span className="text-xs text-slate-400 font-medium">g</span></p>
                     </div>
-                    
+
                     <div className={`rounded-2xl p-4 border backdrop-blur-sm group-hover:brightness-110 transition-all ${isProfit ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
                         <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${isProfit ? 'text-emerald-400/70' : 'text-rose-400/70'}`}>
                             {isProfit ? 'Total P&L' : 'Total Loss'}
@@ -90,13 +91,13 @@ const PortfolioOverview = () => {
                         <div className={`flex items-center gap-1.5 ${isProfit ? 'text-emerald-400' : 'text-rose-400'}`}>
                             {isProfit ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
                             <p className="text-lg font-bold">
-                                {isProfit ? '+' : ''}₹{Math.abs(totalProfit).toLocaleString('en-IN')}
+                                {isProfit ? '+' : '-'}{formatValue(Math.abs(totalProfit))}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <button 
+                <button
                     onClick={() => navigate('/portfolio')}
                     className="group/btn w-full mt-auto py-4 bg-slate-900/50 hover:bg-gold-500 border border-slate-700/50 hover:border-gold-400 rounded-2xl text-sm font-bold transition-all duration-300 flex justify-center items-center gap-2 text-white hover:text-slate-950 shadow-lg hover:shadow-gold-500/20"
                 >
@@ -109,3 +110,4 @@ const PortfolioOverview = () => {
 };
 
 export default PortfolioOverview;
+

@@ -1,15 +1,19 @@
-import { Menu, User, Bell, LogOut, ChevronDown, Search, LayoutDashboard, Briefcase, Calculator, BellRing, Newspaper, ArrowRight } from 'lucide-react';
+import { Menu, User, Bell, LogOut, ChevronDown, Search, LayoutDashboard, Briefcase, Calculator, BellRing, Newspaper, ArrowRight, Globals, Languages, Globe } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useCurrency } from '../../context/CurrencyContext';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
+    const { currency, toggleCurrency } = useCurrency();
     const navigate = useNavigate();
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const searchRef = useRef(null);
+    const currencyRef = useRef(null);
 
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard, keywords: ['home', 'main', 'index', 'overview', 'insights'] },
@@ -42,11 +46,14 @@ const Navbar = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Close search results on click outside
+    // Close menus on click outside
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (searchRef.current && !searchRef.current.contains(e.target)) {
                 setIsSearchOpen(false);
+            }
+            if (currencyRef.current && !currencyRef.current.contains(e.target)) {
+                setIsCurrencyMenuOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -83,7 +90,7 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    {/* Search Results Dropdown */}
+                    {/* Search Results Dropdown remains same */}
                     {isSearchOpen && (searchQuery.trim() !== '' || filteredResults.length > 0) && (
                         <div className="absolute top-full left-0 w-full mt-3 bg-slate-900/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl py-4 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
                             <div className="px-4 mb-3">
@@ -127,18 +134,48 @@ const Navbar = () => {
                 </div>
             </div>
 
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4 md:space-x-6">
+                {/* Currency Selector */}
+                <div className="relative" ref={currencyRef}>
+                    <button 
+                        onClick={() => setIsCurrencyMenuOpen(!isCurrencyMenuOpen)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 bg-slate-900/40 border border-slate-800/60 hover:border-gold-500/30 rounded-xl transition-all duration-300 group"
+                    >
+                        <Globe size={16} className="text-gold-500/70 group-hover:text-gold-500" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">{currency}</span>
+                        <ChevronDown size={12} className={`text-slate-600 transition-transform ${isCurrencyMenuOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {isCurrencyMenuOpen && (
+                        <div className="absolute right-0 mt-3 w-32 bg-slate-900/95 backdrop-blur-2xl border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden py-1.5 animate-in fade-in zoom-in-95 duration-200">
+                            {['INR', 'USD'].map((c) => (
+                                <button
+                                    key={c}
+                                    onClick={() => {
+                                        if (currency !== c) toggleCurrency();
+                                        setIsCurrencyMenuOpen(false);
+                                    }}
+                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${currency === c ? 'bg-gold-500 text-slate-950' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
+                                >
+                                    {c}
+                                    {currency === c && <div className="w-1 h-1 rounded-full bg-slate-950" />}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 <div className="hidden sm:flex h-10 px-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 items-center text-[10px] font-black uppercase tracking-widest text-emerald-400">
                     <span className="relative flex h-2 w-2 mr-2.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    Market Live
+                    Live
                 </div>
 
-                <div className="h-8 w-px bg-slate-800/50 hidden sm:block" />
+                <div className="h-8 w-px bg-slate-800/50 hidden lg:block" />
 
-                <button className="p-3 text-slate-400 hover:text-gold-400 hover:bg-gold-500/5 rounded-2xl transition-all duration-300 relative group">
+                <button className="p-3 text-slate-400 hover:text-gold-400 hover:bg-gold-500/5 rounded-2xl transition-all duration-300 relative group hidden sm:block">
                     <Bell size={20} className="group-hover:rotate-12 transition-transform" />
                     <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-gold-500 ring-4 ring-slate-950"></span>
                 </button>
