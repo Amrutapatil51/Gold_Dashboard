@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+<<<<<<< HEAD
 import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, Activity, Percent, ArrowRight, Calendar, Weight, ShieldCheck, Edit3, X } from 'lucide-react';
+=======
+import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, Activity, Percent, ArrowRight, Calendar, Weight, ShieldCheck, Edit3 } from 'lucide-react';
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
 import { portfolioService, marketService } from '../services/api';
 import Skeleton from '../components/Common/Skeleton';
 import { useCurrency } from '../context/CurrencyContext';
@@ -30,10 +34,13 @@ const Portfolio = () => {
             queryClient.invalidateQueries(['portfolio-items']);
             handleCloseModal();
         },
+<<<<<<< HEAD
         onError: (error) => {
             console.error('Add Portfolio Item Error:', error);
             alert(error.response?.data?.message || 'Failed to log new purchase. Please check your connection.');
         }
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     });
 
     const updateMutation = useMutation({
@@ -42,10 +49,13 @@ const Portfolio = () => {
             queryClient.invalidateQueries(['portfolio-items']);
             handleCloseModal();
         },
+<<<<<<< HEAD
         onError: (error) => {
             console.error('Update Portfolio Item Error:', error);
             alert(error.response?.data?.message || 'Failed to update asset log.');
         }
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     });
 
     const deleteMutation = useMutation({
@@ -53,10 +63,13 @@ const Portfolio = () => {
         onSuccess: () => {
             queryClient.invalidateQueries(['portfolio-items']);
         },
+<<<<<<< HEAD
         onError: (error) => {
             console.error('Delete Portfolio Item Error:', error);
             alert('Failed to delete asset from ledger.');
         }
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     });
 
     const [formData, setFormData] = useState({
@@ -152,6 +165,7 @@ const Portfolio = () => {
                     <div className="bg-slate-900/90 border border-slate-800/50 backdrop-blur-2xl rounded-3xl w-full max-w-lg p-8 shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-gold-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
                         
+<<<<<<< HEAD
                         <div className="flex justify-between items-start mb-8">
                             <div>
                                 <h2 className="text-2xl font-black text-white tracking-tight">{editingItem ? 'Edit' : 'Secure'} <span className="text-gold-500 italic">Asset Log</span></h2>
@@ -164,6 +178,9 @@ const Portfolio = () => {
                                 <X size={20} />
                             </button>
                         </div>
+=======
+                        <h2 className="text-2xl font-black text-white mb-8 tracking-tight">{editingItem ? 'Edit' : 'Secure'} <span className="text-gold-500 italic">Asset Log</span></h2>
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                         
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -373,14 +390,22 @@ const Portfolio = () => {
                                                     <div className="flex items-center justify-end gap-2">
                                                         <button
                                                             onClick={() => handleOpenModal(entry)}
+<<<<<<< HEAD
                                                             className="p-3 text-slate-500 hover:text-gold-400 hover:bg-gold-500/10 rounded-2xl transition-all duration-300"
+=======
+                                                            className="p-3 text-slate-600 hover:text-gold-400 hover:bg-gold-500/10 rounded-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                                                             title="Edit Transaction"
                                                         >
                                                             <Edit3 size={18} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(entry._id)}
+<<<<<<< HEAD
                                                             className="p-3 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-2xl transition-all duration-300"
+=======
+                                                            className="p-3 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 rounded-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                                                             title="Delete Transaction"
                                                         >
                                                             <Trash2 size={18} />

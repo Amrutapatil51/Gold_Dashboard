@@ -1,4 +1,5 @@
 import { useState } from 'react';
+<<<<<<< HEAD
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calculator as CalcIcon, Percent, Info, ArrowRight, Gauge, Scale, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import CountryComparison from '../components/Calculator/CountryComparison';
@@ -12,6 +13,17 @@ const CalculatorPage = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [orderToast, setOrderToast] = useState(null); // null | 'success' | 'error'
+=======
+import { useQuery } from '@tanstack/react-query';
+import { Calculator as CalcIcon, Percent, Info, ArrowRight, Gauge, Scale, Sparkles } from 'lucide-react';
+import CountryComparison from '../components/Calculator/CountryComparison';
+import { marketService } from '../services/api';
+import Skeleton from '../components/Common/Skeleton';
+import { useCurrency } from '../context/CurrencyContext';
+
+const CalculatorPage = () => {
+    const { formatValue, currency, getSymbol } = useCurrency();
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     const [weight, setWeight] = useState(10);
     const [purity, setPurity] = useState('24K');
     const [makingChargesPercent, setMakingChargesPercent] = useState(8);
@@ -35,6 +47,7 @@ const CalculatorPage = () => {
     const targetGst = (subTotal * gstPercent) / 100;
     const finalPrice = subTotal + targetGst;
 
+<<<<<<< HEAD
     const addMutation = useMutation({
         mutationFn: portfolioService.addItem,
         onSuccess: () => {
@@ -60,6 +73,8 @@ const CalculatorPage = () => {
         });
     };
 
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     return (
         <div className="space-y-12 pb-16">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -222,6 +237,7 @@ const CalculatorPage = () => {
                             {formatValue(finalPrice)}
                         </div>
 
+<<<<<<< HEAD
                         {/* Toast feedback */}
                         {orderToast === 'success' && (
                             <div className="flex items-center gap-3 mb-6 px-5 py-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl animate-in fade-in duration-300">
@@ -244,6 +260,11 @@ const CalculatorPage = () => {
                         >
                             {addMutation.isPending ? 'Processing…' : 'Execute Order'}
                             {!addMutation.isPending && <ArrowRight size={18} className="group-hover:translate-x-1.5 transition-transform" />}
+=======
+                        <button className="w-full mt-12 py-5 bg-gradient-to-tr from-gold-600 to-amber-400 hover:from-gold-500 hover:to-amber-300 text-slate-950 rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] transition-all shadow-[0_20px_40px_rgba(187,148,43,0.15)] hover:shadow-gold-500/40 active:scale-[0.98] flex items-center justify-center gap-3 group">
+                            Execute Order
+                            <ArrowRight size={18} className="group-hover:translate-x-1.5 transition-transform" />
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                         </button>
                     </div>
                 </div>

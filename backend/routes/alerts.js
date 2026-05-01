@@ -1,4 +1,5 @@
 import express from 'express';
+<<<<<<< HEAD
 import mongoose from 'mongoose';
 import Alert from '../models/Alert.js';
 import authMiddleware from '../middleware/auth.js';
@@ -7,6 +8,13 @@ import { offlineStore } from '../utils/offlineStore.js';
 const router = express.Router();
 
 // Use auth middleware for all alerts routes
+=======
+import Alert from '../models/Alert.js';
+import authMiddleware from '../middleware/auth.js';
+
+const router = express.Router();
+
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
 router.use(authMiddleware);
 
 // @desc    Get all alerts for a user
@@ -14,6 +22,7 @@ router.use(authMiddleware);
 // @access  Private
 router.get('/', async (req, res) => {
   try {
+<<<<<<< HEAD
     if (mongoose.connection.readyState === 1) {
       const alerts = await Alert.find({ user: req.user._id });
       res.json(alerts);
@@ -21,6 +30,10 @@ router.get('/', async (req, res) => {
       const alerts = await offlineStore.find('alerts', { user: req.user._id.toString() });
       res.json(alerts);
     }
+=======
+    const alerts = await Alert.find({ user: req.user._id });
+    res.json(alerts);
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -33,6 +46,7 @@ router.post('/', async (req, res) => {
   const { targetPrice, condition, metal, currency } = req.body;
 
   try {
+<<<<<<< HEAD
     if (mongoose.connection.readyState === 1) {
       const alert = await Alert.create({
         user: req.user._id,
@@ -59,6 +73,18 @@ router.post('/', async (req, res) => {
       dataReceived: req.body,
       userId: req.user?._id
     });
+=======
+    const alert = await Alert.create({
+      user: req.user._id,
+      targetPrice,
+      condition,
+      metal: metal || 'gold',
+      currency: currency || 'INR',
+    });
+
+    res.status(201).json(alert);
+  } catch (error) {
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     res.status(400).json({ message: error.message });
   }
 });
@@ -68,6 +94,7 @@ router.post('/', async (req, res) => {
 // @access  Private
 router.delete('/:id', async (req, res) => {
   try {
+<<<<<<< HEAD
     if (mongoose.connection.readyState === 1) {
       const alert = await Alert.findById(req.params.id);
 
@@ -85,6 +112,20 @@ router.delete('/:id', async (req, res) => {
       await offlineStore.deleteOne('alerts', req.params.id);
       res.json({ message: 'Alert removed (Offline)' });
     }
+=======
+    const alert = await Alert.findById(req.params.id);
+
+    if (!alert) {
+      return res.status(404).json({ message: 'Alert not found' });
+    }
+
+    if (alert.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    await alert.deleteOne();
+    res.json({ message: 'Alert removed' });
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

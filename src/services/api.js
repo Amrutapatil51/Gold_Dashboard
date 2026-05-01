@@ -41,8 +41,13 @@ export const authService = {
 
 // Market Services
 export const marketService = {
+<<<<<<< HEAD
   getPrice: async (timeframe) => {
     const response = await api.get('/market/price', { params: { timeframe } });
+=======
+  getPrice: async () => {
+    const response = await api.get('/market/price');
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     return response.data;
   },
   getNews: async () => {
@@ -61,10 +66,13 @@ export const portfolioService = {
     const response = await api.post('/portfolio', itemData);
     return response.data;
   },
+<<<<<<< HEAD
   updateItem: async (id, itemData) => {
     const response = await api.put(`/portfolio/${id}`, itemData);
     return response.data;
   },
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   deleteItem: async (id) => {
     const response = await api.delete(`/portfolio/${id}`);
     return response.data;

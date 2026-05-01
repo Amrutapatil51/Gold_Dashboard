@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { offlineStore } from '../utils/offlineStore.js';
+=======
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
 
 const authMiddleware = async (req, res, next) => {
   let token;
@@ -14,6 +19,7 @@ const authMiddleware = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+<<<<<<< HEAD
       // Get user from the token (Check if DB is connected)
       if (mongoose.connection.readyState === 1) {
         req.user = await User.findById(decoded.id).select('-password');
@@ -47,11 +53,24 @@ const authMiddleware = async (req, res, next) => {
       // If it's a database error, we might still want to allow offline access
       // but let's report it for now.
       res.status(500).json({ message: 'Internal server error or Database connection failure' });
+=======
+      // Get user from the token
+      req.user = await User.findById(decoded.id).select('-password');
+
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(401).json({ message: 'Not authorized, token failed' });
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     }
   }
 
   if (!token) {
+<<<<<<< HEAD
     res.status(401).json({ message: 'Not authorized, no token provided' });
+=======
+    res.status(401).json({ message: 'Not authorized, no token' });
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   }
 };
 

@@ -1,8 +1,13 @@
 import express from 'express';
+<<<<<<< HEAD
 import mongoose from 'mongoose';
 import PortfolioItem from '../models/PortfolioItem.js';
 import authMiddleware from '../middleware/auth.js';
 import { offlineStore } from '../utils/offlineStore.js';
+=======
+import PortfolioItem from '../models/PortfolioItem.js';
+import authMiddleware from '../middleware/auth.js';
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
 
 const router = express.Router();
 
@@ -14,6 +19,7 @@ router.use(authMiddleware);
 // @access  Private
 router.get('/', async (req, res) => {
   try {
+<<<<<<< HEAD
     if (mongoose.connection.readyState === 1) {
       const items = await PortfolioItem.find({ user: req.user._id }).sort({ date: -1 });
       res.json(items);
@@ -21,6 +27,10 @@ router.get('/', async (req, res) => {
       const items = await offlineStore.find('portfolio', { user: req.user._id.toString() });
       res.json(items);
     }
+=======
+    const items = await PortfolioItem.find({ user: req.user._id }).sort({ date: -1 });
+    res.json(items);
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -33,6 +43,7 @@ router.post('/', async (req, res) => {
   const { weight, purity, purchasePrice, date, notes } = req.body;
 
   try {
+<<<<<<< HEAD
     if (mongoose.connection.readyState === 1) {
       const item = await PortfolioItem.create({
         user: req.user._id,
@@ -54,6 +65,18 @@ router.post('/', async (req, res) => {
       });
       res.status(201).json(item);
     }
+=======
+    const item = await PortfolioItem.create({
+      user: req.user._id,
+      weight,
+      purity,
+      purchasePrice,
+      date: date || Date.now(),
+      notes,
+    });
+
+    res.status(201).json(item);
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -64,6 +87,7 @@ router.post('/', async (req, res) => {
 // @access  Private
 router.delete('/:id', async (req, res) => {
   try {
+<<<<<<< HEAD
     if (mongoose.connection.readyState === 1) {
       const item = await PortfolioItem.findById(req.params.id);
 
@@ -115,6 +139,21 @@ router.put('/:id', async (req, res) => {
     } else {
       res.status(501).json({ message: 'Update not yet implemented in offline mode' });
     }
+=======
+    const item = await PortfolioItem.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    // Check if user owns the item
+    if (item.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    await item.deleteOne();
+    res.json({ message: 'Item removed' });
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

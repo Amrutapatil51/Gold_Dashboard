@@ -7,7 +7,10 @@ import Alerts from './pages/Alerts';
 import News from './pages/News';
 import Login from './pages/Login';
 import Register from './pages/Register';
+<<<<<<< HEAD
 import Profile from './pages/Profile';
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
 import { useAuth } from './context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -45,7 +48,10 @@ function App() {
           <Route path="calculator" element={<CalculatorPage />} />
           <Route path="alerts" element={<Alerts />} />
           <Route path="news" element={<News />} />
+<<<<<<< HEAD
           <Route path="profile" element={<Profile />} />
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
         </Route>
       </Routes>
     </Router>

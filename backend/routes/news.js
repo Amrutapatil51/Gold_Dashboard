@@ -1,4 +1,5 @@
 import express from 'express';
+<<<<<<< HEAD
 import axios from 'axios';
 import NodeCache from 'node-cache';
 
@@ -45,12 +46,17 @@ const getRelativeTime = (dateString) => {
   const diffInDays = Math.floor(diffInHours / 24);
   return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
 };
+=======
+
+const router = express.Router();
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
 
 // @desc    Get market news
 // @route   GET /api/news
 // @access  Public
 router.get('/', async (req, res) => {
   try {
+<<<<<<< HEAD
     // 1. Check Cache
     const cachedNews = newsCache.get('market_news');
     if (cachedNews) {
@@ -113,6 +119,38 @@ router.get('/', async (req, res) => {
     console.error('News API Error:', error.message);
     // Fall back to mock data so UI doesn't break
     res.status(200).json(mockNews);
+=======
+    const mockNews = [
+      {
+        id: 1,
+        title: 'Gold Hits Record High Amid Global Economic Uncertainties',
+        summary: 'Gold prices continue to surge as investors seek safe-haven assets in response to fluctuating market conditions.',
+        source: 'Market Watch',
+        time: '2 hours ago',
+        url: '#'
+      },
+      {
+        id: 2,
+        title: 'Central Banks Increase Gold Reserves in Q1 2024',
+        summary: 'A significant trend is emerging as central banks across the globe bolster their gold holdings.',
+        source: 'Financial Times',
+        time: '5 hours ago',
+        url: '#'
+      },
+      {
+        id: 2,
+        title: 'India Gold Demand Rises Ahead of Wedding Season',
+        summary: 'Physical gold demand in India sees a sharp uptick as the festive and wedding season approaches.',
+        source: 'Economic Times',
+        time: '1 day ago',
+        url: '#'
+      }
+    ];
+
+    res.json(mockNews);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching market news' });
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   }
 });
 

@@ -15,10 +15,20 @@ export const AuthProvider = ({ children }) => {
         console.log('AuthContext: Parsing stored user data from localStorage');
         setUser(JSON.parse(storedUser));
       } catch (err) {
+<<<<<<< HEAD
         console.error('AuthContext: Failed to parse stored user:', err);
         localStorage.removeItem('user');
       }
     }
+=======
+        console.error('AuthContext: CRITICAL - Failed to parse stored user:', err);
+        localStorage.removeItem('user');
+      }
+    } else {
+        console.log('AuthContext: No stored user found');
+    }
+    console.log('AuthContext: Finalizing initialization (setting loading to false)');
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     setLoading(false);
   }, []);
 

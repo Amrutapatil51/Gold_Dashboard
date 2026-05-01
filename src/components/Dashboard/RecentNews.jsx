@@ -7,7 +7,11 @@ const RecentNews = () => {
     const { data: newsItems, isLoading, isError } = useQuery({
         queryKey: ['market-news'],
         queryFn: marketService.getNews,
+<<<<<<< HEAD
         select: (data) => data.slice(0, 3), // Only show top 3 in dashboard to fit layout
+=======
+        select: (data) => data.slice(0, 4), // Only show top 4 in dashboard
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     });
 
     return (
@@ -22,7 +26,11 @@ const RecentNews = () => {
                 </button>
             </div>
 
+<<<<<<< HEAD
             <div className="flex-1 space-y-4 overflow-y-auto pr-1 custom-scrollbar">
+=======
+            <div className="flex-1 space-y-4">
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                 {isLoading ? (
                     [1, 2, 3].map(i => (
                         <div key={i} className="p-4 rounded-2xl bg-slate-900/30 border border-slate-800/50 space-y-3">

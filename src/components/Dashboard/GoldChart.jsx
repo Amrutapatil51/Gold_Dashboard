@@ -14,7 +14,11 @@ const GoldChart = () => {
     // Fetch Market Data
     const { data: rawChartData, isLoading: isMarketLoading } = useQuery({
         queryKey: ['market-history', timeframe],
+<<<<<<< HEAD
         queryFn: () => marketService.getPrice(timeframe),
+=======
+        queryFn: marketService.getPrice,
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
         select: (data) => data.historical || [],
     });
 
@@ -73,10 +77,17 @@ const GoldChart = () => {
     };
 
     return (
+<<<<<<< HEAD
         <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-[2.5rem] p-6 shadow-2xl h-full flex flex-col group hover:border-gold-500/20 transition-all duration-500 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-gold-500/5 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none group-hover:bg-gold-500/10 transition-all duration-700" />
 
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6">
+=======
+        <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-md rounded-[2.5rem] p-8 shadow-2xl h-full flex flex-col group hover:border-gold-500/20 transition-all duration-500 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gold-500/5 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none group-hover:bg-gold-500/10 transition-all duration-700" />
+
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                 <div>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2.5 bg-slate-950/50 rounded-xl text-gold-500">
@@ -127,7 +138,11 @@ const GoldChart = () => {
                 </div>
             </div>
 
+<<<<<<< HEAD
             <div className="flex-1 w-full min-h-[280px]">
+=======
+            <div className="flex-1 w-full min-h-[350px]">
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                 {isLoading ? (
                     <div className="h-full w-full flex flex-col gap-6 py-4">
                         <Skeleton className="flex-1 w-full rounded-[2rem]" />

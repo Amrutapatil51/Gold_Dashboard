@@ -70,10 +70,13 @@ const Alerts = () => {
                 currency: 'INR'
             });
         },
+<<<<<<< HEAD
         onError: (error) => {
             console.error('Create Alert Error:', error);
             alert(error.response?.data?.message || 'Failed to deploy trigger sequence. Please check your connection.');
         }
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     });
 
     const deleteMutation = useMutation({
@@ -81,10 +84,13 @@ const Alerts = () => {
         onSuccess: () => {
             queryClient.invalidateQueries(['alerts']);
         },
+<<<<<<< HEAD
         onError: (error) => {
             console.error('Delete Alert Error:', error);
             alert('Failed to terminate monitoring sequence.');
         }
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     });
 
     const [formData, setFormData] = useState({
@@ -253,7 +259,11 @@ const Alerts = () => {
                                 </div>
                                 <button
                                     onClick={() => handleDelete(alert._id)}
+<<<<<<< HEAD
                                     className="p-2.5 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all duration-300"
+=======
+                                    className="p-2.5 text-slate-700 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all duration-300 opacity-0 group-hover/card:opacity-100"
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                                 >
                                     <Trash2 size={16} />
                                 </button>

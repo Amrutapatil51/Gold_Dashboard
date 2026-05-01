@@ -95,6 +95,7 @@ const Dashboard = () => {
             <MarketInsights />
             <PriceCards />
 
+<<<<<<< HEAD
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div className="lg:col-span-2 h-[480px]">
                     <GoldChart />
@@ -104,6 +105,17 @@ const Dashboard = () => {
                 </div>
                 <div className="lg:col-span-1 h-[480px]">
                     <RecentNews />
+=======
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 min-h-[400px]">
+                    <GoldChart />
+                </div>
+                <div className="flex flex-col gap-6">
+                    <PortfolioOverview />
+                    <div className="flex-1 min-h-[250px]">
+                        <RecentNews />
+                    </div>
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                 </div>
             </div>
         </div>

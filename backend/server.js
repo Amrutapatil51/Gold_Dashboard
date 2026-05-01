@@ -43,11 +43,19 @@ app.get('/api/health', (req, res) => {
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
+<<<<<<< HEAD
     console.log('✅ SUCCESS: Connected to MongoDB Atlas');
   })
   .catch((error) => {
     console.error('❌ DATABASE ERROR:', error.message);
     console.log('Trying to continue... (Login/Register will remain locked until connection succeeds)');
+=======
+    console.log('Connected to MongoDB');
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error.message);
+    console.log('Server is continuing without DB (Registration/Login will fail until DB is fixed)');
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   });
 
 app.listen(PORT, () => {

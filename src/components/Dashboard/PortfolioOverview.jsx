@@ -60,7 +60,11 @@ const PortfolioOverview = () => {
             <div className="absolute top-0 right-0 w-32 h-32 bg-gold-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-gold-500/10 transition-colors duration-500" />
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-3xl -ml-12 -mb-12 pointer-events-none" />
 
+<<<<<<< HEAD
             <div className="flex items-center gap-4 mb-6">
+=======
+            <div className="flex items-center gap-4 mb-8">
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                 <div className="p-3 bg-gradient-to-br from-indigo-500/20 to-purple-500/10 rounded-2xl text-indigo-400 group-hover:scale-110 transition-transform duration-300">
                     <Briefcase size={24} />
                 </div>
@@ -70,7 +74,11 @@ const PortfolioOverview = () => {
                 </div>
             </div>
 
+<<<<<<< HEAD
             <div className="space-y-6 flex-1">
+=======
+            <div className="space-y-8 flex-1">
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
                 <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Total Current Value</p>
                     <h3 className="text-4xl font-black text-white tracking-tight group-hover:text-gold-100 transition-colors">

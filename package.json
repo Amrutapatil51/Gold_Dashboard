@@ -7,8 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+<<<<<<< HEAD
     "preview": "vite preview",
     "start": "concurrently \"npm run dev\" \"cd backend && npm run dev\""
+=======
+    "preview": "vite preview"
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
@@ -28,7 +32,10 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+<<<<<<< HEAD
     "concurrently": "^9.2.1",
+=======
+>>>>>>> fd662a3a9c4caa2dc09b0fe4343bab567e18a0c5
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
