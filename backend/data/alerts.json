@@ -1,0 +1,11 @@
+[
+  {
+    "_id": "1776714985651",
+    "targetPrice": 87097,
+    "condition": "above",
+    "metal": "gold",
+    "currency": "INR",
+    "createdAt": "2026-04-20T19:56:25.651Z",
+    "updatedAt": "2026-04-20T19:56:25.651Z"
+  }
+]

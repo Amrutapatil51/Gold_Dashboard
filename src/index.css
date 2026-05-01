@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold-50: #fbf8eb;
+  --color-gold-100: #f5eed0;
+  --color-gold-200: #ecdda3;
+  --color-gold-300: #dfc56e;
+  --color-gold-400: #d4ae43;
+  --color-gold-500: #bb942b;
+  --color-gold-600: #a07421;
+  --color-gold-700: #80561e;
+  --color-gold-800: #6a461e;
+  --color-gold-900: #5a3a1b;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-900 text-slate-50 antialiased font-sans;
+  }
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "_id": "1776714970092",
+    "weight": 124,
+    "purity": "24K",
+    "purchasePrice": 5346,
+    "date": "2026-04-20",
+    "notes": "gfdjgjyfhjyh",
+    "createdAt": "2026-04-20T19:56:10.092Z",
+    "updatedAt": "2026-04-20T19:56:10.092Z"
+  },
+  {
+    "_id": "1776768737138",
+    "user": "69bc36323bfc31ead655f3aa",
+    "weight": 1,
+    "purity": "24K",
+    "purchasePrice": 45000,
+    "date": "2026-04-21",
+    "notes": "fhdghg",
+    "createdAt": "2026-04-21T10:52:17.138Z",
+    "updatedAt": "2026-04-21T10:52:17.138Z"
+  }
+]
